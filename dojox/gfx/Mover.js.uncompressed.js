@@ -19,7 +19,7 @@ define("dojox/gfx/Mover", ["dojo/_base/lang","dojo/_base/array", "dojo/_base/dec
 			var h = this.host = host, d = document,
 				firstEvent = on(d, touch.move, lang.hitch(this, "onFirstMove"));
 			this.events = [
-				on(d, touch.move,    lang.hitch(this, "onMouseMove")),
+				on(d, touch.move, lang.hitch(this, "onMouseMove")),
 				on(d, touch.release, lang.hitch(this, "destroy")),
 				// cancel text selection and text dragging
 				on(d, "dragstart",   lang.hitch(event, "stop")),
@@ -54,7 +54,9 @@ define("dojox/gfx/Mover", ["dojo/_base/lang","dojo/_base/array", "dojo/_base/dec
 		destroy: function(){
 			// summary:
 			//		stops the move, deletes all references, so the object can be garbage-collected
-			arr.forEach(this.events, function(h){h.remove();});
+			arr.forEach(this.events, function(handle){
+				handle.remove();
+			});
 			// undo global settings
 			var h = this.host;
 			if(h && h.onMoveStop){

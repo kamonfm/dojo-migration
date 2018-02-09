@@ -8,7 +8,7 @@ define("dojox/editor/plugins/NormalizeStyle", [
 	"dojo/_base/declare"
 ], function(dojo, dijit, dojox, _Plugin, editorHtml) {
 
-dojo.declare("dojox.editor.plugins.NormalizeStyle", _Plugin,{
+var NormalizeStyle = dojo.declare("dojox.editor.plugins.NormalizeStyle", _Plugin,{
 	// summary:
 	//		This plugin provides NormalizeStyle capability to the editor.  It is
 	//		a headless plugin that tries to normalize how content is styled when
@@ -209,7 +209,7 @@ dojo.declare("dojox.editor.plugins.NormalizeStyle", _Plugin,{
 									size = 3;
 								}
 								sTag = doc.createElement("font");
-								font.setAttribute("size", size);
+								sTag.setAttribute("size", size);
 								cNode.style.fontSize = "";
 							}
 							cNode = wrapNodes(sTag, cNode);
@@ -256,6 +256,7 @@ dojo.declare("dojox.editor.plugins.NormalizeStyle", _Plugin,{
 		// tags:
 		//		Protected.
 		var w = this.editor.window;
+		var doc = this.editor.document;
 		dojo.query("em,s,strong", node).forEach(function(n){
 			var tag = n.tagName?n.tagName.toLowerCase():"";
 			var tTag;
@@ -549,13 +550,13 @@ dojo.subscribe(dijit._scopeName + ".Editor.getPlugin",null,function(o){
 	if(o.plugin){ return; }
 	var name = o.args.name.toLowerCase();
 	if(name === "normalizestyle"){
-		o.plugin = new dojox.editor.plugins.NormalizeStyle({
+		o.plugin = new NormalizeStyle({
 			mode: ("mode" in o.args)?o.args.mode:"semantic",
 			condenseSpans: ("condenseSpans" in o.args)?o.args.condenseSpans:true
 		});
 	}
 });
 
-return dojox.editor.plugins.NormalizeStyle;
+return NormalizeStyle;
 
 });

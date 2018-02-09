@@ -5,15 +5,21 @@ define("dojo/request/util", [
 	'../Deferred',
 	'../io-query',
 	'../_base/array',
-	'../_base/lang'
-], function(exports, RequestError, CancelError, Deferred, ioQuery, array, lang){
+	'../_base/lang',
+	'../promise/Promise',
+	'../has'
+], function(exports, RequestError, CancelError, Deferred, ioQuery, array, lang, Promise, has){
 	exports.deepCopy = function deepCopy(target, source){
 		for(var name in source){
 			var tval = target[name],
 				sval = source[name];
 			if(tval !== sval){
 				if(tval && typeof tval === 'object' && sval && typeof sval === 'object'){
-					exports.deepCopy(tval, sval);
+					if(sval instanceof Date){
+						target[name] = new Date(sval);
+					}else{
+						exports.deepCopy(tval, sval);
+					}
 				}else{
 					target[name] = sval;
 				}
@@ -40,6 +46,9 @@ define("dojo/request/util", [
 	var freeze = Object.freeze || function(obj){ return obj; };
 	function okHandler(response){
 		return freeze(response);
+	}
+	function dataHandler (response) {
+		return response.data !== undefined ? response.data : response.text;
 	}
 
 	exports.deferred = function deferred(response, cancel, isValid, isReady, handleResponse, last){
@@ -70,13 +79,22 @@ define("dojo/request/util", [
 			);
 		}
 
-		var dataPromise = responsePromise.then(function(response){
-				return response.data || response.text;
-			});
+		var dataPromise = responsePromise.then(dataHandler);
 
-		var promise = freeze(lang.delegate(dataPromise, {
-			response: responsePromise
-		}));
+		// http://bugs.dojotoolkit.org/ticket/16794
+		// The following works around a leak in IE9 through the
+		// prototype using lang.delegate on dataPromise and
+		// assigning the result a property with a reference to
+		// responsePromise.
+		var promise = new Promise();
+		for (var prop in dataPromise) {
+			if (dataPromise.hasOwnProperty(prop)) {
+				promise[prop] = dataPromise[prop];
+			}
+		}
+		promise.response = responsePromise;
+		freeze(promise);
+		// End leak fix
 
 
 		if(last){
@@ -106,9 +124,9 @@ define("dojo/request/util", [
 	exports.parseArgs = function parseArgs(url, options, skipData){
 		var data = options.data,
 			query = options.query;
-		
+
 		if(data && !skipData){
-			if(typeof data === 'object'){
+			if(typeof data === 'object' && (!(has('native-xhr2')) || !(data instanceof ArrayBuffer || data instanceof Blob ))){
 				options.data = ioQuery.objectToQuery(data);
 			}
 		}

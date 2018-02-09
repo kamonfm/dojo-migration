@@ -1,3 +1,7 @@
+require({cache:{
+'url:dojox/grid/enhanced/templates/FilterDefPane.html':"<div class=\"dojoxGridFDPane\">\n\t<div class=\"dojoxGridFDPaneRelation\">${_relMsgFront}\n\t<span class=\"dojoxGridFDPaneModes\" dojoAttachPoint=\"criteriaModeNode\">\n\t\t<select dojoAttachPoint=\"_relSelect\" dojoType=\"dijit.form.Select\" dojoAttachEvent=\"onChange: _onRelSelectChange\">\n\t\t\t<option value=\"0\">${_relAll}</option>\n\t\t\t<option value=\"1\">${_relAny}</option>\n\t\t</select>\n\t</span>\n\t${_relMsgTail}\n\t</div>\n\t<div dojoAttachPoint=\"criteriaPane\" class=\"dojoxGridFDPaneRulePane\"></div>\n\t<div dojoAttachPoint=\"_addCBoxBtn\" dojoType=\"dijit.form.Button\" \n\t\tclass=\"dojoxGridFDPaneAddCBoxBtn\" iconClass=\"dojoxGridFDPaneAddCBoxBtnIcon\"\n\t\tdojoAttachEvent=\"onClick:_onAddCBox\" label=\"${_addRuleBtnLabel}\" showLabel=\"false\">\n\t</div>\n\t<div class=\"dojoxGridFDPaneBtns\" dojoAttachPoint=\"buttonsPane\">\n\t\t<span dojoAttachPoint=\"_cancelBtn\" dojoType=\"dijit.form.Button\" \n\t\t\tdojoAttachEvent=\"onClick:_onCancel\" label=\"${_cancelBtnLabel}\">\n\t\t</span>\n\t\t<span dojoAttachPoint=\"_clearFilterBtn\" dojoType=\"dijit.form.Button\" \n\t\t\tdojoAttachEvent=\"onClick:_onClearFilter\" label=\"${_clearBtnLabel}\" disabled=\"true\">\n\t\t</span>\n\t\t<span dojoAttachPoint=\"_filterBtn\" dojoType=\"dijit.form.Button\" \n\t\t\tdojoAttachEvent=\"onClick:_onFilter\" label=\"${_filterBtnLabel}\" disabled=\"true\">\n\t\t</span>\n\t</div>\n</div>\n",
+'url:dojox/grid/enhanced/templates/CriteriaBox.html':"<div class=\"dojoxGridFCBox\">\n\t<div class=\"dojoxGridFCBoxSelCol\" dojoAttachPoint=\"selColNode\">\n\t\t<span class=\"dojoxGridFCBoxField\">${_colSelectLabel}</span>\n\t\t<select dojoAttachPoint=\"_colSelect\" dojoType=\"dijit.form.Select\" \n\t\t\tclass=\"dojoxGridFCBoxColSelect\"\n\t\t\tdojoAttachEvent=\"onChange:_onChangeColumn\">\n\t\t</select>\n\t</div>\n\t<div class=\"dojoxGridFCBoxCondition\" dojoAttachPoint=\"condNode\">\n\t\t<span class=\"dojoxGridFCBoxField\">${_condSelectLabel}</span>\n\t\t<select dojoAttachPoint=\"_condSelect\" dojoType=\"dijit.form.Select\" \n\t\t\tclass=\"dojoxGridFCBoxCondSelect\"\n\t\t\tdojoAttachEvent=\"onChange:_onChangeCondition\">\n\t\t</select>\n\t\t<div class=\"dojoxGridFCBoxCondSelectAlt\" dojoAttachPoint=\"_condSelectAlt\" style=\"display:none;\"></div>\n\t</div>\n\t<div class=\"dojoxGridFCBoxValue\" dojoAttachPoint=\"valueNode\">\n\t\t<span class=\"dojoxGridFCBoxField\">${_valueBoxLabel}</span>\n\t</div>\n</div>\n",
+'url:dojox/grid/enhanced/templates/FilterBoolValueBox.html':"<div class=\"dojoxGridBoolValueBox\">\n\t<div class=\"dojoxGridTrueBox\">\n\t\t<input dojoType=\"dijit.form.RadioButton\" type='radio' name='a1' id='${_baseId}_rbTrue' checked=\"true\" \n\t\t\tdojoAttachPoint=\"rbTrue\" dojoAttachEvent=\"onChange: onChange\"/>\n\t\t<div class=\"dojoxGridTrueLabel\" for='${_baseId}_rbTrue'>${_lblTrue}</div>\n\t</div>\n\t<div class=\"dojoxGridFalseBox\">\n\t\t<input dojoType=\"dijit.form.RadioButton\" dojoAttachPoint=\"rbFalse\" type='radio' name='a1' id='${_baseId}_rbFalse'/>\n\t\t<div class=\"dojoxGridTrueLabel\" for='${_baseId}_rbFalse'>${_lblFalse}</div>\n\t</div>\n</div>\n"}});
 define("dojox/grid/enhanced/plugins/filter/FilterDefDialog", [
 	"dojo/_base/declare",
 	"dojo/_base/array",
@@ -6,8 +10,8 @@ define("dojox/grid/enhanced/plugins/filter/FilterDefDialog", [
 	"dojo/_base/event",
 	"dojo/_base/html",
 	"dojo/_base/sniff",
-	"dojo/cache",
 	"dojo/keys",
+	"dojo/on",
 	"dojo/string",
 	"dojo/window",
 	"dojo/date/locale",		
@@ -27,14 +31,18 @@ define("dojox/grid/enhanced/plugins/filter/FilterDefDialog", [
 	"dijit/focus",
 	"dojox/html/metrics",
 	"dijit/a11y",
+	"dojo/text!../../templates/FilterDefPane.html",
+	"dojo/text!../../templates/CriteriaBox.html",
+	"dojo/text!../../templates/FilterBoolValueBox.html",	
 	"dijit/Tooltip",
 	"dijit/form/Select",
 	"dijit/form/RadioButton",
 	"dojox/html/ellipsis",
 	"../../../cells/dijit"
-], function(declare, array, connect, lang, event, html, has, cache, keys, string, win, dateLocale, 
+], function(declare, array, connect, lang, event, html, has, keys, on, string, win, dateLocale, 
 	FilterBuilder, Dialog, ComboBox, TextBox, NumberTextBox, DateTextBox, TimeTextBox, Button, 
-	AccordionContainer, ContentPane, _Widget, _TemplatedMixin, _WidgetsInTemplateMixin, dijitFocus, metrics, dijitA11y){
+	AccordionContainer, ContentPane, _Widget, _TemplatedMixin, _WidgetsInTemplateMixin, dijitFocus,
+	metrics, dijitA11y, defPaneTemplate, criteriaTemplate, boolValueTemplate){
 		
 var _tabIdxes = {
 		// summary:
@@ -200,7 +208,7 @@ var FilterAccordionContainer = declare("dojox.grid.enhanced.plugins.filter.Accor
 	}
 });
 var FilterDefPane = declare("dojox.grid.enhanced.plugins.filter.FilterDefPane",[_Widget, _TemplatedMixin, _WidgetsInTemplateMixin],{
-	templateString: cache("dojox.grid","enhanced/templates/FilterDefPane.html"),
+	templateString: defPaneTemplate,
 	widgetsInTemplate: true,
 	dlg: null,
 	postMixInProperties: function(){
@@ -217,7 +225,9 @@ var FilterDefPane = declare("dojox.grid.enhanced.plugins.filter.FilterDefPane",[
 	},
 	postCreate: function(){
 		this.inherited(arguments);
-		this.connect(this.domNode, "onkeypress", "_onKey");
+		// this.connect(this.domNode, "onkeypress", "_onKey");
+		on(this.domNode, "keydown", lang.hitch(this, "_onKey"));
+		
 		(this.cboxContainer = new FilterAccordionContainer({
 			nls: this.plugin.nls
 		})).placeAt(this.criteriaPane);
@@ -265,7 +275,7 @@ var FilterDefPane = declare("dojox.grid.enhanced.plugins.filter.FilterDefPane",[
 	}
 });
 var CriteriaBox = declare("dojox.grid.enhanced.plugins.filter.CriteriaBox",[_Widget, _TemplatedMixin, _WidgetsInTemplateMixin],{
-	templateString: cache("dojox.grid","enhanced/templates/CriteriaBox.html"),
+	templateString: criteriaTemplate,
 	widgetsInTemplate: true,
 	dlg: null,
 	postMixInProperties: function(){
@@ -602,7 +612,7 @@ var CriteriaBox = declare("dojox.grid.enhanced.plugins.filter.CriteriaBox",[_Wid
 		this.valueNode.appendChild(this._curValueBox.domNode);
 		
 		//Can not move to setAriaInfo, 'cause the value box is created after the defpane is loaded.
-		this._curValueBox.domNode.setAttribute("aria-label", string.substitute(this.plugin.nls.waiValueBoxTemplate,[this._index]));
+		this._curValueBox.focusNode.setAttribute("aria-label", string.substitute(this.plugin.nls.waiValueBoxTemplate,[this._index]));
 		//Now our cbox is completely ready
 		this.dlg.onRendered(this);
 	},
@@ -685,7 +695,7 @@ var UniqueComboBox = declare("dojox.grid.enhanced.plugins.filter.UniqueComboBox"
 	}
 });
 var BooleanValueBox = declare("dojox.grid.enhanced.plugins.filter.BooleanValueBox", [_Widget, _TemplatedMixin, _WidgetsInTemplateMixin], {
-	templateString: cache("dojox.grid","enhanced/templates/FilterBoolValueBox.html"),
+	templateString: boolValueTemplate,
 	widgetsInTemplate: true,
 	constructor: function(args){
 		var nls = args.cbox.plugin.nls;
@@ -1100,7 +1110,7 @@ var FilterDefDialog = declare("dojox.grid.enhanced.plugins.filter.FilterDefDialo
 	},
 	showDialog: function(/* int */colIndex){
 		// summary:
-		//		Show the filter defintion dialog.
+		//		Show the filter definition dialog.
 		this._defPane.show();
 		this.plugin.filterStatusTip.closeDialog();
 		this._prepareDialog(colIndex);

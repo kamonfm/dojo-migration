@@ -12,11 +12,11 @@ define("dojo/request/xhr", [
 		return typeof XMLHttpRequest !== 'undefined';
 	});
 	has.add('dojo-force-activex-xhr', function(){
-		return has('activex') && !document.addEventListener && window.location.protocol === 'file:';
+		return has('activex') && window.location.protocol === 'file:';
 	});
 
 	has.add('native-xhr2', function(){
-		if(!has('native-xhr')){ return; }
+		if(!has('native-xhr') || has('dojo-force-activex-xhr')){ return; }
 		var x = new XMLHttpRequest();
 		return typeof x['addEventListener'] !== 'undefined' &&
 			(typeof opera === 'undefined' || typeof x['upload'] !== 'undefined');
@@ -24,13 +24,44 @@ define("dojo/request/xhr", [
 
 	has.add('native-formdata', function(){
 		// if true, the environment has a native FormData implementation
-		return typeof FormData === 'function';
+		return typeof FormData !== 'undefined';
 	});
+
+	has.add('native-response-type', function(){
+		return has('native-xhr') && typeof new XMLHttpRequest().responseType !== 'undefined';
+	});
+
+	has.add('native-xhr2-blob', function(){
+		if(!has('native-response-type')){ return; }
+		var x = new XMLHttpRequest();
+		// The URL used here does not have to be reachable as the XHR's `send` method is never called.
+		// It does need to be parsable/resolvable in all cases, so it should be an absolute URL.
+		// XMLHttpRequest within a Worker created from a Blob does not support relative URL paths.
+		x.open('GET', 'https://dojotoolkit.org/', true);
+		x.responseType = 'blob';
+		// will not be set if unsupported
+		var responseType = x.responseType;
+		x.abort();
+		return responseType === 'blob';
+	});
+
+	// Google Chrome doesn't support "json" response type
+	// up to version 30, so it's intentionally not included here
+	var nativeResponseTypes = {
+		'blob': has('native-xhr2-blob') ? 'blob' : 'arraybuffer',
+		'document': 'document',
+		'arraybuffer': 'arraybuffer'
+	};
 
 	function handleResponse(response, error){
 		var _xhr = response.xhr;
 		response.status = response.xhr.status;
-		response.text = _xhr.responseText;
+
+		try {
+			// Firefox throws an error when trying to access
+			// xhr.responseText if response isn't text
+			response.text = _xhr.responseText;
+		} catch (e) {}
 
 		if(response.options.handleAs === 'xml'){
 			response.data = _xhr.responseXML;
@@ -43,15 +74,31 @@ define("dojo/request/xhr", [
 				error = e;
 			}
 		}
-
+		var handleError;
 		if(error){
 			this.reject(error);
-		}else if(util.checkStatus(_xhr.status)){
-			this.resolve(response);
 		}else{
-			error = new RequestError('Unable to load ' + response.url + ' status: ' + _xhr.status, response);
-
-			this.reject(error);
+			try{
+				handlers(response);
+			}catch(e){
+				handleError = e;
+			}
+			if(util.checkStatus(_xhr.status)){
+				if(!handleError){
+					this.resolve(response);
+				}else{
+					this.reject(handleError);
+				}
+			}else{
+				if(!handleError){
+					error = new RequestError('Unable to load ' + response.url + ' status: ' + _xhr.status, response);
+					this.reject(error);
+				}else{
+					error = new RequestError('Unable to load ' + response.url + ' status: ' + _xhr.status +
+						' and an error in handleAs: transformation of response', response);
+    				this.reject(error);
+				}
+			}
 		}
 	}
 
@@ -77,7 +124,7 @@ define("dojo/request/xhr", [
 			}
 			function onError(evt){
 				var _xhr = evt.target;
-				var error = new RequestError('Unable to load ' + response.url + ' status: ' + _xhr.status, response); 
+				var error = new RequestError('Unable to load ' + response.url + ' status: ' + _xhr.status, response);
 				dfd.handleResponse(response, error);
 			}
 
@@ -85,6 +132,9 @@ define("dojo/request/xhr", [
 				if(evt.lengthComputable){
 					response.loaded = evt.loaded;
 					response.total = evt.total;
+					dfd.progress(response);
+				} else if(response.xhr.readyState === 3){
+					response.loaded = ('loaded' in evt) ? evt.loaded : evt.position;
 					dfd.progress(response);
 				}
 			}
@@ -97,6 +147,7 @@ define("dojo/request/xhr", [
 				_xhr.removeEventListener('load', onLoad, false);
 				_xhr.removeEventListener('error', onError, false);
 				_xhr.removeEventListener('progress', onProgress, false);
+				_xhr = null;
 			};
 		};
 	}else{
@@ -117,35 +168,32 @@ define("dojo/request/xhr", [
 		};
 	}
 
+	function getHeader(headerName){
+		return this.xhr.getResponseHeader(headerName);
+	}
+
 	var undefined,
 		defaultOptions = {
 			data: null,
 			query: null,
 			sync: false,
-			method: 'GET',
-			headers: {
-				'Content-Type': 'application/x-www-form-urlencoded'
-			}
+			method: 'GET'
 		};
 	function xhr(url, options, returnDeferred){
-		// summary:
-		//		Sends a request using XMLHttpRequest with the given URL and options.
-		// url: String
-		//		URL to request
-		// options: dojo/request/xhr.__Options?
-		//		Options for the request.
-		// returnDeferred: Boolean
-		//		Return a dojo/Deferred rather than a dojo/promise/Promise
-		// returns: dojo/promise/Promise|dojo/Deferred
-
+		var isFormData = has('native-formdata') && options && options.data && options.data instanceof FormData;
 		var response = util.parseArgs(
 			url,
 			util.deepCreate(defaultOptions, options),
-			has('native-formdata') && options && options.data && options.data instanceof FormData
+			isFormData
 		);
 		url = response.url;
 		options = response.options;
 
+		if(has('ie') <= 10){
+			// older IE breaks point 9 in http://www.w3.org/TR/XMLHttpRequest/#the-open()-method and sends fragment, so strip it
+			url = url.split('#')[0];
+		}
+		
 		var remover,
 			last = function(){
 				remover && remover();
@@ -169,15 +217,14 @@ define("dojo/request/xhr", [
 			return returnDeferred ? dfd : dfd.promise;
 		}
 
-		response.getHeader = function(headerName){
-			return this.xhr.getResponseHeader(headerName);
-		};
+		response.getHeader = getHeader;
 
 		if(addListeners){
 			remover = addListeners(_xhr, dfd, response);
 		}
 
-		var data = options.data,
+		// IE11 treats data: undefined different than other browsers
+		var data = typeof(options.data) === 'undefined' ? null : options.data,
 			async = !options.sync,
 			method = options.method;
 
@@ -189,8 +236,12 @@ define("dojo/request/xhr", [
 				_xhr.withCredentials = options.withCredentials;
 			}
 
+			if(has('native-response-type') && options.handleAs in nativeResponseTypes) {
+				_xhr.responseType = nativeResponseTypes[options.handleAs];
+			}
+
 			var headers = options.headers,
-				contentType;
+				contentType = isFormData ? false : 'application/x-www-form-urlencoded';
 			if(headers){
 				for(var hdr in headers){
 					if(hdr.toLowerCase() === 'content-type'){
@@ -225,6 +276,15 @@ define("dojo/request/xhr", [
 	}
 
 	/*=====
+	xhr = function(url, options){
+		// summary:
+		//		Sends a request using XMLHttpRequest with the given URL and options.
+		// url: String
+		//		URL to request
+		// options: dojo/request/xhr.__Options?
+		//		Options for the request.
+		// returns: dojo/request.__Promise
+	};
 	xhr.__BaseOptions = declare(request.__BaseOptions, {
 		// sync: Boolean?
 		//		Whether to make a synchronous request or not. Default
@@ -256,7 +316,7 @@ define("dojo/request/xhr", [
 		//		URL to request
 		// options: dojo/request/xhr.__BaseOptions?
 		//		Options for the request.
-		// returns: dojo/promise/Promise
+		// returns: dojo/request.__Promise
 	};
 	xhr.post = function(url, options){
 		// summary:
@@ -265,7 +325,7 @@ define("dojo/request/xhr", [
 		//		URL to request
 		// options: dojo/request/xhr.__BaseOptions?
 		//		Options for the request.
-		// returns: dojo/promise/Promise
+		// returns: dojo/request.__Promise
 	};
 	xhr.put = function(url, options){
 		// summary:
@@ -274,7 +334,7 @@ define("dojo/request/xhr", [
 		//		URL to request
 		// options: dojo/request/xhr.__BaseOptions?
 		//		Options for the request.
-		// returns: dojo/promise/Promise
+		// returns: dojo/request.__Promise
 	};
 	xhr.del = function(url, options){
 		// summary:
@@ -283,7 +343,7 @@ define("dojo/request/xhr", [
 		//		URL to request
 		// options: dojo/request/xhr.__BaseOptions?
 		//		Options for the request.
-		// returns: dojo/promise/Promise
+		// returns: dojo/request.__Promise
 	};
 	=====*/
 	xhr._create = function(){

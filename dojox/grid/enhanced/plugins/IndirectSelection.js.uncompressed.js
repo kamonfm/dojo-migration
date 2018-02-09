@@ -88,7 +88,7 @@ var RowSelector = declare("dojox.grid.cells.RowSelector", gridCells._Widget, {
 		return ["<div tabindex = -1 ",
 				"id = '" + _this.grid.id + "_rowSelector_" + rowIndex + "' ",
 				"name = '" + _this.grid.id + "_rowSelector' class = '" + clazz + "' ",
-				"role = " + _this.inputType + " aria-checked = '" + checked + "' aria-disabled = '" + disabled +
+				"role = " + _this.inputType.toLowerCase() + " aria-checked = '" + checked + "' aria-disabled = '" + disabled +
 				"' aria-label = '" + string.substitute(_this.grid._nls["indirectSelection" + _this.inputType], [rowIndex + 1]) + "'>",
 				"<span class = '" + _this.statusTextClass + "'>" + (checked ? _this.checkedText : _this.unCheckedText) + "</span>",
 				"</div>"].join("");
@@ -267,7 +267,7 @@ var SingleRowSelector = declare("dojox.grid.cells.SingleRowSelector", RowSelecto
 		//		Event fired on the target row
 		var index = e.rowIndex;
 		if(this.disabledMap[index]){ return; }
-		this._focusEndingCell(index, 0);
+		this._focusEndingCell(index, e.cellIndex);
 		this._nativeSelect(index, !this.grid.selection.selected[index]);
 	}
 });
@@ -462,7 +462,7 @@ var MultipleRowSelector = declare("dojox.grid.cells.MultipleRowSelector", RowSel
 		var rowIndex = e.rowIndex;
 		if(this.disabledMap[rowIndex]){ return; }
 		evt.stop(e);
-		this._focusEndingCell(rowIndex, 0);
+		this._focusEndingCell(rowIndex, e.cellIndex);
 		
 		var delta = rowIndex - this.lastClickRowIdx;
 		var newValue = !this.grid.selection.selected[rowIndex];
@@ -495,7 +495,7 @@ var MultipleRowSelector = declare("dojox.grid.cells.MultipleRowSelector", RowSel
 		var g = this.grid;
 		var selector = headerCellNode.appendChild(html.create("div", {
 			'aria-label': g._nls["selectAll"],
-			"tabindex": -1, "id": g.id + "_rowSelector_-1", "class": this.baseClass, "role": "Checkbox",
+			"tabindex": -1, "id": g.id + "_rowSelector_-1", "class": this.baseClass, "role": "checkbox",
 			"innerHTML": "<span class = '" + this.statusTextClass +
 				"'></span><span style='height: 0; width: 0; overflow: hidden; display: block;'>" +
 				g._nls["selectAll"] + "</span>"

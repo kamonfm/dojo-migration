@@ -60,7 +60,7 @@ return declare("dojo.store.Memory", base, {
 		//		Stores an object
 		// object: Object
 		//		The object to store.
-		// options: Store.PutDirectives??
+		// options: dojo/store/api/Store.PutDirectives?
 		//		Additional metadata for storing the data.  Includes an "id"
 		//		property if a specific id is to be used.
 		// returns: Number
@@ -86,7 +86,7 @@ return declare("dojo.store.Memory", base, {
 		//		Creates an object, throws an error if the object already exists
 		// object: Object
 		//		The object to store.
-		// options: Store.PutDirectives??
+		// options: dojo/store/api/Store.PutDirectives?
 		//		Additional metadata for storing the data.  Includes an "id"
 		//		property if a specific id is to be used.
 		// returns: Number
@@ -115,9 +115,9 @@ return declare("dojo.store.Memory", base, {
 		//		Queries the store for objects.
 		// query: Object
 		//		The query to use for retrieving objects from the store.
-		// options: Store.QueryOptions?
+		// options: dojo/store/api/Store.QueryOptions?
 		//		The optional arguments to apply to the resultset.
-		// returns: Store.QueryResults
+		// returns: dojo/store/api/Store.QueryResults
 		//		The results of the query, extended with iterative methods.
 		//
 		// example:
@@ -149,7 +149,7 @@ return declare("dojo.store.Memory", base, {
 		//		An array of objects to use as the source of data.
 		if(data.items){
 			// just for convenience with the data format IFRS expects
-			this.idProperty = data.identifier;
+			this.idProperty = data.identifier || this.idProperty;
 			data = this.data = data.items;
 		}else{
 			this.data = data;

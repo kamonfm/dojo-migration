@@ -1,6 +1,40 @@
 define(
 "dojo/cldr/nls/tr/hebrew", //begin v1.x content
 {
+	"days-standAlone-short": [
+		"Pa",
+		"Pt",
+		"Sa",
+		"Ça",
+		"Pe",
+		"Cu",
+		"Ct"
+	],
+	"field-second-relative+0": "şimdi",
+	"quarters-standAlone-narrow": [
+		"1.",
+		"2.",
+		"3.",
+		"4."
+	],
+	"field-weekday": "Haftanın Günü",
+	"field-wed-relative+0": "bu çarşamba",
+	"field-wed-relative+1": "gelecek çarşamba",
+	"dateFormatItem-GyMMMEd": "G d MMM y E",
+	"dateFormatItem-MMMEd": "d MMM E",
+	"field-tue-relative+-1": "geçen salı",
+	"days-format-short": [
+		"Pa",
+		"Pt",
+		"Sa",
+		"Ça",
+		"Pe",
+		"Cu",
+		"Ct"
+	],
+	"dateFormat-long": "G d MMMM y",
+	"field-fri-relative+-1": "geçen cuma",
+	"field-wed-relative+-1": "geçen çarşamba",
 	"months-format-wide": [
 		"Tişri",
 		"Heşvan",
@@ -16,37 +50,13 @@ define(
 		"Av",
 		"Elul"
 	],
-	"months-format-wide-leap": "Adar II",
-	"months-format-abbr": [
-		"Tişri",
-		"Heşvan",
-		"Kislev",
-		"Tevet",
-		"Şevat",
-		"Veadar",
-		"Adar",
-		"Nisan",
-		"İyar",
-		"Sivan",
-		"Tamuz",
-		"Av",
-		"Elul"
-	],
-	"months-standAlone-abbr": [
-		"Tişri",
-		"Heşvan",
-		"Kislev",
-		"Tevet",
-		"Şevat",
-		"Veadar",
-		"Adar",
-		"Nisan",
-		"İyar",
-		"Sivan",
-		"Tamuz",
-		"Av",
-		"Elul"
-	],
+	"dateFormatItem-yyyyQQQ": "G y/QQQ",
+	"dayPeriods-format-wide-pm": "ÖS",
+	"dateFormat-full": "G d MMMM y EEEE",
+	"dateFormatItem-yyyyMEd": "GGGGG dd.MM.y E",
+	"field-thu-relative+-1": "geçen perşembe",
+	"dateFormatItem-Md": "dd/MM",
+	"field-era": "Miladi Dönem",
 	"months-standAlone-wide": [
 		"Tişri",
 		"Heşvan",
@@ -62,6 +72,120 @@ define(
 		"Av",
 		"Elul"
 	],
+	"quarters-format-wide": [
+		"1. çeyrek",
+		"2. çeyrek",
+		"3. çeyrek",
+		"4. çeyrek"
+	],
+	"field-year": "Yıl",
+	"field-hour": "Saat",
+	"months-format-abbr": [
+		"Tişri",
+		"Heşvan",
+		"Kislev",
+		"Tevet",
+		"Şevat",
+		"Veadar",
+		"Adar",
+		"Nisan",
+		"İyar",
+		"Sivan",
+		"Tamuz",
+		"Av",
+		"Elul"
+	],
+	"field-sat-relative+0": "bu cumartesi",
+	"field-sat-relative+1": "gelecek cumartesi",
+	"field-day-relative+0": "bugün",
+	"field-thu-relative+0": "bu perşembe",
+	"field-day-relative+1": "yarın",
+	"field-thu-relative+1": "gelecek perşembe",
+	"dateFormatItem-GyMMMd": "G d MMM y",
+	"field-day-relative+2": "öbür gün",
+	"months-standAlone-abbr": [
+		"Tişri",
+		"Heşvan",
+		"Kislev",
+		"Tevet",
+		"Şevat",
+		"Veadar",
+		"Adar",
+		"Nisan",
+		"İyar",
+		"Sivan",
+		"Tamuz",
+		"Av",
+		"Elul"
+	],
+	"quarters-format-abbr": [
+		"Ç1",
+		"Ç2",
+		"Ç3",
+		"Ç4"
+	],
+	"quarters-standAlone-wide": [
+		"1. çeyrek",
+		"2. çeyrek",
+		"3. çeyrek",
+		"4. çeyrek"
+	],
+	"dateFormatItem-yyyyMMMEd": "G d MMM y E",
+	"days-standAlone-wide": [
+		"Pazar",
+		"Pazartesi",
+		"Salı",
+		"Çarşamba",
+		"Perşembe",
+		"Cuma",
+		"Cumartesi"
+	],
+	"dateFormatItem-yyyyMMM": "G MMM y",
+	"dateFormatItem-yyyyMMMd": "G dd MMM y",
+	"field-sun-relative+0": "bu pazar",
+	"field-sun-relative+1": "gelecek pazar",
+	"quarters-standAlone-abbr": [
+		"Ç1",
+		"Ç2",
+		"Ç3",
+		"Ç4"
+	],
+	"field-minute": "Dakika",
+	"field-dayperiod": "ÖÖ/ÖS",
+	"days-standAlone-abbr": [
+		"Paz",
+		"Pzt",
+		"Sal",
+		"Çar",
+		"Per",
+		"Cum",
+		"Cmt"
+	],
+	"quarters-format-narrow": [
+		"1.",
+		"2.",
+		"3.",
+		"4."
+	],
+	"field-day-relative+-1": "dün",
+	"field-day-relative+-2": "evvelsi gün",
+	"dateFormatItem-MMMd": "d MMM",
+	"dateFormatItem-MEd": "dd/MM E",
+	"field-fri-relative+0": "bu cuma",
+	"field-fri-relative+1": "gelecek cuma",
+	"field-day": "Gün",
+	"days-format-wide": [
+		"Pazar",
+		"Pazartesi",
+		"Salı",
+		"Çarşamba",
+		"Perşembe",
+		"Cuma",
+		"Cumartesi"
+	],
+	"field-zone": "Saat Dilimi",
+	"field-year-relative+-1": "geçen yıl",
+	"field-month-relative+-1": "geçen ay",
 	"days-format-abbr": [
 		"Paz",
 		"Pzt",
@@ -80,24 +204,8 @@ define(
 		"C",
 		"C"
 	],
-	"days-format-wide": [
-		"Pazar",
-		"Pazartesi",
-		"Salı",
-		"Çarşamba",
-		"Perşembe",
-		"Cuma",
-		"Cumartesi"
-	],
-	"days-standAlone-abbr": [
-		"Paz",
-		"Pzt",
-		"Sal",
-		"Çar",
-		"Per",
-		"Cum",
-		"Cmt"
-	],
+	"dateFormatItem-yyyyMd": "GGGGG dd.MM.y",
+	"field-month": "Ay",
 	"days-standAlone-narrow": [
 		"P",
 		"P",
@@ -107,55 +215,30 @@ define(
 		"C",
 		"C"
 	],
-	"days-standAlone-wide": [
-		"Pazar",
-		"Pazartesi",
-		"Salı",
-		"Çarşamba",
-		"Perşembe",
-		"Cuma",
-		"Cumartesi"
-	],
-	"quarters-format-abbr": [
-		"Ç1",
-		"Ç2",
-		"Ç3",
-		"Ç4"
-	],
-	"quarters-format-wide": [
-		"1. çeyrek",
-		"2. çeyrek",
-		"3. çeyrek",
-		"4. çeyrek"
-	],
-	"quarters-standAlone-abbr": [
-		"Ç1",
-		"Ç2",
-		"Ç3",
-		"Ç4"
-	],
-	"quarters-standAlone-wide": [
-		"1. çeyrek",
-		"2. çeyrek",
-		"3. çeyrek",
-		"4. çeyrek"
-	],
-	"dateFormat-full": "d MMMM y EEEE",
-	"dateFormat-long": "d MMMM y",
-	"dateFormat-medium": "d MMM y",
-	"dateFormat-short": "dd.MM.yyyy",
-	"dateFormatItem-Md": "dd.MM",
-	"dateFormatItem-MEd": "dd.MM E",
-	"dateFormatItem-MMMd": "d MMMM",
-	"dateFormatItem-MMMEd": "d MMMM E",
-	"dateFormatItem-yM": "MM.yy",
-	"dateFormatItem-yMd": "dd.MM.yyyy",
-	"dateFormatItem-yMEd": "dd.MM.yyyy E",
-	"dateFormatItem-yMMM": "MMM y",
-	"dateFormatItem-yMMMd": "dd MMM y",
-	"dateFormatItem-yMMMEd": "d MMM y E",
-	"dateFormatItem-yQ": "y-Q",
-	"dateFormatItem-yQQQ": "y-QQQ"
+	"field-tue-relative+0": "bu salı",
+	"field-tue-relative+1": "gelecek salı",
+	"dayPeriods-format-wide-am": "ÖÖ",
+	"field-mon-relative+0": "bu pazartesi",
+	"field-mon-relative+1": "gelecek pazartesi",
+	"dateFormat-short": "GGGGG d.MM.y",
+	"field-second": "Saniye",
+	"field-sat-relative+-1": "geçen cumartesi",
+	"field-sun-relative+-1": "geçen pazar",
+	"field-month-relative+0": "bu ay",
+	"field-month-relative+1": "gelecek ay",
+	"dateFormatItem-Ed": "d E",
+	"field-week": "Hafta",
+	"dateFormat-medium": "G d MMM y",
+	"field-year-relative+0": "bu yıl",
+	"field-week-relative+-1": "geçen hafta",
+	"dateFormatItem-yyyyM": "GGGGG M/y",
+	"field-year-relative+1": "gelecek yıl",
+	"dateFormatItem-yyyyQQQQ": "G y/QQQQ",
+	"months-format-wide-leap": "Adar II",
+	"dateFormatItem-GyMMM": "G MMM y",
+	"field-mon-relative+-1": "geçen pazartesi",
+	"field-week-relative+0": "bu hafta",
+	"field-week-relative+1": "gelecek hafta"
 }
 //end v1.x content
 );

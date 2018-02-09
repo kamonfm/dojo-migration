@@ -67,7 +67,11 @@ var NestedSorting = declare("dojox.grid.enhanced.plugins.NestedSorting", _Plugin
 		}
 		this.connect(this.grid.views, 'render', '_initSort');//including column resize
 		this.initCookieHandler();
-		this.subscribe("dojox/grid/rearrange/move/" + this.grid.id, lang.hitch(this, '_onColumnDnD'));
+		if(this.grid.plugin('rearrange')){
+			this.subscribe("dojox/grid/rearrange/move/" + this.grid.id, lang.hitch(this, '_onColumnDnD'));
+		}else{
+			this.connect(this.grid.layout, 'moveColumn', '_onMoveColumn');
+		}
 	},
 	onStartUp: function(){
 		//overwrite base Grid functions
@@ -75,6 +79,52 @@ var NestedSorting = declare("dojox.grid.enhanced.plugins.NestedSorting", _Plugin
 		this.connect(this.grid, 'onHeaderCellClick', '_onHeaderCellClick');
 		this.connect(this.grid, 'onHeaderCellMouseOver', '_onHeaderCellMouseOver');
 		this.connect(this.grid, 'onHeaderCellMouseOut', '_onHeaderCellMouseOut');
+	},
+	_onMoveColumn: function(sourceViewIndex, destViewIndex, cellIndex, targetIndex, before){
+		var cr = this._getCurrentRegion(),
+			idx = cr && this._getRegionHeader(cr).getAttribute('idx'),
+			c = this._headerNodes[idx],
+			sortData = this._sortData,
+			newSortData = {},
+			sortIndex, data;
+		if(cr){
+			this._blurRegion(cr);
+			this._currRegionIdx = array.indexOf(this._getRegions(), c.firstChild);
+		}
+		if(targetIndex < cellIndex){
+			for(sortIndex in sortData){
+				sortIndex = parseInt(sortIndex, 10);
+				data = sortData[sortIndex];
+				if(data){
+					if(sortIndex >= targetIndex && sortIndex < cellIndex){
+						newSortData[sortIndex + 1] = data;
+					}else if(sortIndex == cellIndex){
+						newSortData[targetIndex] = data;
+					}else{
+						newSortData[sortIndex] = data;
+					}
+				}
+			}
+		}else if(targetIndex > cellIndex + 1){
+			if(!before){
+				targetIndex++;
+			}
+			for(sortIndex in sortData){
+				sortIndex = parseInt(sortIndex, 10);
+				data = sortData[sortIndex];
+				if(data){
+					if(sortIndex > cellIndex && sortIndex < targetIndex){
+						newSortData[sortIndex - 1] = data;
+					}else if(sortIndex == cellIndex){
+						newSortData[targetIndex - 1] = data;
+					}else{
+						newSortData[sortIndex] = data;
+					}
+				}
+			}
+		}
+		this._sortData = newSortData;
+		this._initSort(false);
 	},
 	_onColumnDnD: function(type, mapping){
 		// summary:
@@ -495,10 +545,16 @@ var NestedSorting = declare("dojox.grid.enhanced.plugins.NestedSorting", _Plugin
 		if(this._currRegionIdx === -1){
 			this._onMove(0, 1, null);
 		}else{
-			this._focusRegion(this._getCurrentRegion());
+			var region = this._getCurrentRegion();
+			this._focusRegion(region);
+			//keep grid body scrolled by header
+			var view = this._getRegionView(region);
+			view.scrollboxNode.scrollLeft = view.headerNode.scrollLeft;
 		}
 		try{
-			evt.stop(e);
+			if(e){
+				evt.stop(e);
+			}
 		}catch(e){}
 		return true;
 	},
@@ -573,7 +629,10 @@ var NestedSorting = declare("dojox.grid.enhanced.plugins.NestedSorting", _Plugin
 		}else if(html.hasClass(region, 'dojoxGridSortBtn')){
 			html.addClass(region, 'dojoxGridSortBtnFocus');
 		}
-		region.focus();
+		//For invisible nodes, IE will throw error when calling focus().
+		try{
+			region.focus();
+		}catch(e){}
 		this.focus.currentArea('header');
 		this._currRegionIdx = array.indexOf(this._focusRegions, region);
 	},

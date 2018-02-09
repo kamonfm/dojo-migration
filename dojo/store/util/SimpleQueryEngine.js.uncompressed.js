@@ -28,7 +28,7 @@ return function(query, options){
 	//		used to match strings by more complex expressions
 	//		(and then the regex's or object's test() method will be used to match values).
 	//
-	// options: Store.QueryOptions?
+	// options: dojo/store/api/Store.QueryOptions?
 	//		An object that contains optional information such as sort, start, and count.
 	//
 	// returns: Function
@@ -88,6 +88,9 @@ return function(query, options){
 				for(var sort, i=0; sort = sortSet[i]; i++){
 					var aValue = a[sort.attribute];
 					var bValue = b[sort.attribute];
+					// valueOf enables proper comparison of dates
+					aValue = aValue != null ? aValue.valueOf() : aValue;
+					bValue = bValue != null ? bValue.valueOf() : bValue;
 					if (aValue != bValue){
 						return !!sort.descending == (aValue == null || aValue > bValue) ? -1 : 1;
 					}

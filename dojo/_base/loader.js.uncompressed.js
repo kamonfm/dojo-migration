@@ -1,4 +1,4 @@
-define("dojo/_base/loader", ["./kernel", "../has", "require", "module", "./json", "./lang", "./array"], function(dojo, has, require, thisModule, json, lang, array) {
+define("dojo/_base/loader", ["./kernel", "../has", "require", "module", "../json", "./lang", "./array"], function(dojo, has, require, thisModule, json, lang, array) {
 	// module:
 	//		dojo/_base/loader
 
@@ -294,7 +294,7 @@ define("dojo/_base/loader", ["./kernel", "../has", "require", "module", "./json"
 			startApplication  // the position in text where the function application expression starts
 		){
 			// find end of the call by finding the matching end paren
-			// Warning: as usual, this will fail in the presense of unmatched right parans contained in strings, regexs, or unremoved comments
+			// Warning: as usual, this will fail in the presence of unmatched right parans contained in strings, regexs, or unremoved comments
 			var parenRe = /\(|\)/g,
 				matchCount = 1,
 				match;
@@ -435,10 +435,10 @@ define("dojo/_base/loader", ["./kernel", "../has", "require", "module", "./json"
 			// don't have to map dojo/init since that will occur when the dependency is resolved
 			return "// xdomain rewrite of " + module.mid + "\n" +
 				"define('" + id + "',{\n" +
-				"\tnames:" + dojo.toJson(names) + ",\n" +
+				"\tnames:" + json.stringify(names) + ",\n" +
 				"\tdef:function(" + names.join(",") + "){" + extractResult[1] + "}" +
 				"});\n\n" +
-				"define(" + dojo.toJson(names.concat(["dojo/loadInit!"+id])) + ", function(" + names.join(",") + "){\n" + extractResult[0] + "});";
+				"define(" + json.stringify(names.concat(["dojo/loadInit!"+id])) + ", function(" + names.join(",") + "){\n" + extractResult[0] + "});";
 		},
 
 		loaderVars = require.initSyncLoader(dojoRequirePlugin, checkDojoRequirePlugin, transformToAmd),
@@ -720,7 +720,7 @@ define("dojo/_base/loader", ["./kernel", "../has", "require", "module", "./json"
 		//		optionally load dojo modules. The map is indexed by the
 		//		possible dojo.name_ values, with two additional values:
 		//		"default" and "common". The items in the "default" array will
-		//		be loaded if none of the other items have been choosen based on
+		//		be loaded if none of the other items have been chosen based on
 		//		dojo.name_, set by your host environment. The items in the
 		//		"common" array will *always* be loaded, regardless of which
 		//		list is chosen.

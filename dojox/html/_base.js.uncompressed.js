@@ -18,7 +18,7 @@ define("dojox/html/_base", [
 	Need to pull in the implementation of the various helper methods
 	Some can be static method, others maybe methods of the ContentSetter (?)
 
-	Gut the ContentPane, replace its _setContent with our own call to dojox.html.set()
+	Gut the ContentPane, replace its _setContent with our own call to dojox/html.set()
 
 
 */
@@ -180,6 +180,9 @@ define("dojox/html/_base", [
 					url: src,
 					sync: true,
 					load: function(code){
+						if(byRef.code !=="") {
+						   code = "\n" + code;
+						}
 						byRef.code += code+";";
 					},
 					error: byRef.errBack
@@ -193,7 +196,10 @@ define("dojox/html/_base", [
 				if(src){
 					download(src);
 				}else{
-					byRef.code += code;
+					if(byRef.code !=="") {
+					   code = "\n" + code;
+					}
+					byRef.code += code+";";
 				}
 				return "";
 			}
@@ -211,7 +217,7 @@ define("dojox/html/_base", [
 		n.text = code; // DOM 1 says this should work
 	};
 
-	html._ContentSetter = declare(/*===== "dojox.html._ContentSetter", =====*/ htmlUtil._ContentSetter, {
+	html._ContentSetter = declare(/*===== "dojox/html._ContentSetter", =====*/ htmlUtil._ContentSetter, {
 		// adjustPaths: Boolean
 		//		Adjust relative paths in html string content to point to this page
 		//		Only useful if you grab content from a another folder than the current one
@@ -261,7 +267,7 @@ define("dojox/html/_base", [
 			//		Called after instantiation, but before set();
 			//		It allows modification of any of the object properties - including the node and content
 			//		provided - before the set operation actually takes place
-			//		This implementation extends that of dojo.html._ContentSetter
+			//		This implementation extends that of dojo/html/_ContentSetter
 			//		to add handling for adjustPaths, renderStyles on the html string content before it is set
 			this.inherited("onBegin", arguments);
 
@@ -269,6 +275,7 @@ define("dojox/html/_base", [
 				node = this.node;
 
 			var styles = this._styles;// init vars
+			this._code = null; // do not execute scripts from previous content set
 
 			if(lang.isString(cont)){
 				if(this.adjustPaths && this.referencePath){
@@ -279,8 +286,8 @@ define("dojox/html/_base", [
 					cont = snarfStyles(this.referencePath, cont, styles);
 				}
 
-				// because of a bug in IE, script tags that is first in html hierarchy doesnt make it into the DOM
-				//	when content is innerHTML'ed, so we can't use dojo.query to retrieve scripts from DOM
+				// because of a bug in IE, the script tag that is first in html hierarchy doesnt make it into the DOM
+				//	when content is innerHTML'ed, so we can't use dojo/query to retrieve scripts from DOM
 				if(this.executeScripts){
 					var _t = this;
 					var byRef = {
@@ -300,7 +307,7 @@ define("dojox/html/_base", [
 			// summary:
 			//		Called after set(), when the new content has been pushed into the node
 			//		It provides an opportunity for post-processing before handing back the node to the caller
-			//		This implementation extends that of dojo.html._ContentSetter
+			//		This implementation extends that of dojo/html/_ContentSetter
 
 			var code = this._code,
 				styles = this._styles;
@@ -319,7 +326,22 @@ define("dojox/html/_base", [
 				this._renderStyles(styles);
 			}
 
+			// Deferred to signal when this function is complete
+			var d = new Deferred();
+
+			// Setup function to call onEnd() in the superclass, for parsing, and resolve the above Deferred when
+			// parsing is complete.
+			var superClassOnEndMethod = this.getInherited(arguments),
+				args = arguments,
+				callSuperclass = lang.hitch(this, function(){
+					superClassOnEndMethod.apply(this, args);
+
+					// If parser ran (parseContent == true), wait for it to finish, otherwise call d.resolve() immediately
+					when(this.parseDeferred, function(){ d.resolve(); });
+				});
+
 			if(this.executeScripts && code){
+				// Evaluate any <script> blocks in the content
 				if(this.cleanContent){
 					// clean JS from html comments and other crap that browser
 					// parser takes care of in a normal page load
@@ -336,22 +358,16 @@ define("dojox/html/_base", [
 				}catch(e){
 					this._onError('Exec', 'Error eval script in '+this.id+', '+e.message, e);
 				}
+
+				// Finally, use ready() to wait for any require() calls from the <script> blocks to complete,
+				// then call onEnd() in the superclass, for parsing, and when that is done resolve the Deferred.
+				// For 2.0, remove the call to ready() (or this whole if() branch?) since the parser can do loading for us.
+				ready(callSuperclass);
+			}else{
+				// There were no <script>'s to execute, so immediately call onEnd() in the superclass, and
+				// when the parser finishes running, resolve the Deferred.
+				callSuperclass();
 			}
-
-			// Call onEnd() in the superclass, for parsing, but only after any require() calls from above executeScripts
-			// code block have executed.  If there were no require() calls the superclass call will execute immediately,
-			// unless this function is being called from the parser in which case the parser needs to finish running
-			// first before ready() fires the callback.
-			// For 2.0, remove the call to ready() since the parser can do loading for us.
-			var superClassOnEndMethod = this.getInherited(arguments),
-				args = arguments,
-				d = new Deferred();
-			ready(lang.hitch(this, function(){
-				superClassOnEndMethod.apply(this, args);
-
-				// If parser ran (parseContent == true), wait for it to finish, otherwise call d.resolve() immediately
-				when(this.parseDeferred, function(){ d.resolve(); });
-			}));
 
 			// Return a promise that resolves after the ready() call completes, and after the parser finishes running.
 			return d.promise;
@@ -387,13 +403,15 @@ define("dojox/html/_base", [
 			//		the content to be set on the parent element.
 			//		This can be an html string, a node reference or a NodeList, dojo/NodeList, Array or other enumerable list of nodes
 			// params:
-			//		Optional flags/properties to configure the content-setting. See dojo.html._ContentSetter
+			//		Optional flags/properties to configure the content-setting. See dojo/html/_ContentSetter
 			// example:
 			//		A safe string/node/nodelist content replacement/injection with hooks for extension
 			//		Example Usage:
-			//	|	dojo.html.set(node, "some string");
-			//	|	dojo.html.set(node, contentNode, {options});
-			//	|	dojo.html.set(node, myNode.childNodes, {options});
+			//	|	require(["dojo/html", "dojox/html", "dojo/domReady!"], function(html){
+			//	|		html.set(node, "some string");
+			//	|		html.set(node, contentNode, {options});
+			//	|		html.set(node, myNode.childNodes, {options});
+			//	|	});
 
 		if(!params){
 			// simple and fast

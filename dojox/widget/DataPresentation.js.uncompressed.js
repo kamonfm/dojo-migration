@@ -1,5 +1,5 @@
 // wrapped by build app
-define("dojox/widget/DataPresentation", ["dijit","dojo","dojox","dojo/require!dojox/grid/DataGrid,dojox/charting/Chart2D,dojox/charting/widget/Legend,dojox/charting/action2d/Tooltip,dojox/charting/action2d/Highlight,dojo/colors,dojo/data/ItemFileWriteStore"], function(dijit,dojo,dojox){
+define("dojox/widget/DataPresentation", ["dojo","dijit","dojox","dojo/require!dojox/grid/DataGrid,dojox/charting/Chart2D,dojox/charting/widget/Legend,dojox/charting/action2d/Tooltip,dojox/charting/action2d/Highlight,dojo/colors,dojo/data/ItemFileWriteStore"], function(dojo,dijit,dojox){
 dojo.provide("dojox.widget.DataPresentation");
 dojo.experimental("dojox.widget.DataPresentation");
 
@@ -794,7 +794,7 @@ dojo.require("dojo.data.ItemFileWriteStore");
 			
 			if(this.preparedstore){
 				if(this.chartNode){
-					this.chartWidget = setupChart(this.chartNode, this.chartWidget, this.chartType, this.reverse, this.animate, this.labelMod, this.theme, this.tooltip, this.preparedstore, this.query, this,queryOptions);
+					this.chartWidget = setupChart(this.chartNode, this.chartWidget, this.chartType, this.reverse, this.animate, this.labelMod, this.theme, this.tooltip, this.preparedstore, this.query, this.queryOptions);
 					this.renderChartWidget();
 				}
 				if(this.legendNode){

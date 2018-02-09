@@ -228,7 +228,7 @@ define("dojox/grid/_Grid", [
 		height: '',
 
 		// structure: dojox.grid.__ViewDef|dojox.grid.__ViewDef[]|dojox.grid.__CellDef[]|Array[dojox.grid.__CellDef[]]
-		//		View layout defintion.
+		//		View layout definition.
 		structure: null,
 
 		// elasticView: Integer
@@ -347,6 +347,9 @@ define("dojox/grid/_Grid", [
 			html.addClass(this.domNode, this.classTag);
 			if(!this.isLeftToRight()){
 				html.addClass(this.domNode, this.classTag+"Rtl");
+			}
+			if(this.rowHeight > 0){
+				html.addClass(this.viewsNode, this.classTag + "FixedRowHeight");
 			}
 		},
 		
@@ -678,13 +681,6 @@ define("dojox/grid/_Grid", [
 			// called.  This saves us an extra call to _resize(), which can
 			// get kind of heavy.
 			
-			// fixes #11101, should ignore resize when in autoheight mode(IE) to avoid a deadlock
-			// e.g when an autoheight editable grid put in dijit.form.Form or other similar containers,
-			// grid switch to editing mode --> grid height change --> From height change
-			// ---> Form call grid.resize() ---> grid height change  --> deaklock
-			if(dojo.isIE && !changeSize && !resultSize && this._autoHeight){
-				return;
-			}
 			this._pendingChangeSize = changeSize;
 			this._pendingResultSize = resultSize;
 			this.sizeChange();
@@ -744,7 +740,7 @@ define("dojox/grid/_Grid", [
 				this.height = this.domNode.style.height;
 				delete this.fitTo;
 			}else if(this.fitTo == "parent"){
-				h = this._parentContentBoxHeight = this._parentContentBoxHeight || html._getContentBox(pn).h;
+				h = this._parentContentBoxHeight = (this._parentContentBoxHeight > 0 ? this._parentContentBoxHeight : html._getContentBox(pn).h);
 				this.domNode.style.height = Math.max(0, h) + "px";
 			}
 			

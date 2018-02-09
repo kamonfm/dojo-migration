@@ -2,6 +2,7 @@ define("dojo/request/script", [
 	'module',
 	'./watch',
 	'./util',
+	'../_base/kernel',
 	'../_base/array',
 	'../_base/lang',
 	'../on',
@@ -11,7 +12,7 @@ define("dojo/request/script", [
 	'../_base/window'/*=====,
 	'../request',
 	'../_base/declare' =====*/
-], function(module, watch, util, array, lang, on, dom, domConstruct, has, win/*=====, request, declare =====*/){
+], function(module, watch, util, kernel, array, lang, on, dom, domConstruct, has, win/*=====, request, declare =====*/){
 	has.add('script-readystatechange', function(global, document){
 		var script = document.createElement('script');
 		return typeof script['onreadystatechange'] !== 'undefined' &&
@@ -22,15 +23,24 @@ define("dojo/request/script", [
 		counter = 0,
 		loadEvent = has('script-readystatechange') ? 'readystatechange' : 'load',
 		readyRegExp = /complete|loaded/,
-		callbacks = this[mid + '_callbacks'] = {},
+		callbacks = kernel.global[mid + '_callbacks'] = {},
 		deadScripts = [];
 
-	function attach(id, url, frameDoc){
+	function attach(id, url, frameDoc, errorHandler){
 		var doc = (frameDoc || win.doc),
 			element = doc.createElement('script');
 
+		if (errorHandler) {
+			on.once(element, 'error', errorHandler);
+		}
+
 		element.type = 'text/javascript';
-		element.src = url;
+		try {
+			element.src = url;
+		} catch(err) {
+			errorHandler && errorHandler(element);
+		}
+
 		element.id = id;
 		element.async = true;
 		element.charset = 'utf-8';
@@ -56,9 +66,17 @@ define("dojo/request/script", [
 	}
 
 	function _addDeadScript(dfd){
-		var response = dfd.response;
-		deadScripts.push({ id: dfd.id, frameDoc: response.options.frameDoc });
-		response.options.frameDoc = null;
+		// Be sure to check ioArgs because it can dynamically change in the dojox/io plugins.
+		// See http://bugs.dojotoolkit.org/ticket/15890.
+		var options = dfd.response.options,
+			frameDoc = options.ioArgs ? options.ioArgs.frameDoc : options.frameDoc;
+
+		deadScripts.push({ id: dfd.id, frameDoc: frameDoc });
+
+		if(options.ioArgs){
+			options.ioArgs.frameDoc = null;
+		}
+		options.frameDoc = null;
 	}
 
 	function canceler(dfd, response){
@@ -103,16 +121,6 @@ define("dojo/request/script", [
 	}
 
 	function script(url, options, returnDeferred){
-		// summary:
-		//		Sends a request using a script element with the given URL and options.
-		// url: String
-		//		URL to request
-		// options: dojo/request/script.__Options?
-		//		Options for the request.
-		// returnDeferred: Boolean
-		//		Return a dojo/Deferred rather than a dojo/promise/Promise
-		// returns: dojo/promise/Promise|dojo/Deferred
-
 		var response = util.parseArgs(url, util.deepCopy({}, options));
 		url = response.url;
 		options = response.options;
@@ -131,9 +139,10 @@ define("dojo/request/script", [
 		});
 
 		if(options.jsonp){
-			var queryParameter = (~url.indexOf('?') ? '&' : '?') + options.jsonp + '=';
-			if(url.indexOf(queryParameter) === -1){
-				url += queryParameter +
+			var queryParameter = new RegExp('[?&]' + options.jsonp + '=');
+			if(!queryParameter.test(url)){
+				url += (~url.indexOf('?') ? '&' : '?') +
+					options.jsonp + '=' +
 					(options.frameDoc ? 'parent.' : '') +
 					mid + '_callbacks.' + dfd.id;
 			}
@@ -150,7 +159,15 @@ define("dojo/request/script", [
 		}
 
 		if(!options.canAttach || options.canAttach(dfd)){
-			var node = script._attach(dfd.id, url, options.frameDoc);
+			var node = script._attach(dfd.id, url, options.frameDoc, function (error) {
+				if (!(error instanceof Error)) {
+					var newError = new Error('Error loading ' + (error.target ? error.target.src : 'script'));
+					newError.source = error;
+					error = newError;
+				}
+				dfd.reject(error);
+				script._remove(dfd.id, options.frameDoc, true);
+			});
 
 			if(!options.jsonp && !options.checkString){
 				var handle = on(node, loadEvent, function(evt){
@@ -168,6 +185,15 @@ define("dojo/request/script", [
 	}
 	script.get = script;
 	/*=====
+	script = function(url, options){
+		// summary:
+		//		Sends a request using a script element with the given URL and options.
+		// url: String
+		//		URL to request
+		// options: dojo/request/script.__Options?
+		//		Options for the request.
+		// returns: dojo/request.__Promise
+	};
 	script.__BaseOptions = declare(request.__BaseOptions, {
 		// jsonp: String?
 		//		The URL parameter name that indicates the JSONP callback string.
@@ -198,7 +224,7 @@ define("dojo/request/script", [
 		//		URL to request
 		// options: dojo/request/script.__BaseOptions?
 		//		Options for the request.
-		// returns: dojo/promise/Promise
+		// returns: dojo/request.__Promise
 	};
 	=====*/
 

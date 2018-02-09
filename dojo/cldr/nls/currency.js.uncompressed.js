@@ -2,18 +2,19 @@ define("dojo/cldr/nls/currency", { root:
 
 //begin v1.x content
 {
-	"AUD_symbol": "AU$",
+	"USD_symbol": "US$",
 	"CAD_symbol": "CA$",
-	"CNY_symbol": "CN¥",
-	"EUR_symbol": "€",
 	"GBP_symbol": "£",
 	"HKD_symbol": "HK$",
 	"JPY_symbol": "JP¥",
-	"USD_symbol": "US$"
+	"AUD_symbol": "A$",
+	"CNY_symbol": "CN¥",
+	"EUR_symbol": "€"
 }
 //end v1.x content
 ,
 	"ar": true,
+	"bs": true,
 	"ca": true,
 	"cs": true,
 	"da": true,
@@ -22,14 +23,19 @@ define("dojo/cldr/nls/currency", { root:
 	"en": true,
 	"en-au": true,
 	"en-ca": true,
+	"en-gb": true,
 	"es": true,
 	"fi": true,
 	"fr": true,
+	"fr-ch": true,
 	"he": true,
+	"hr": true,
 	"hu": true,
+	"id": true,
 	"it": true,
 	"ja": true,
 	"ko": true,
+	"mk": true,
 	"nb": true,
 	"nl": true,
 	"pl": true,
@@ -39,6 +45,7 @@ define("dojo/cldr/nls/currency", { root:
 	"ru": true,
 	"sk": true,
 	"sl": true,
+	"sr": true,
 	"sv": true,
 	"th": true,
 	"tr": true,
