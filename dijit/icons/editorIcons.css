@@ -1,4 +1,31 @@
-
+.dijitAgCustomIcon {
+    background-image: url('images/customIconsAgenda.png');
+    background-repeat: no-repeat;
+    width: 24px;
+    height: 24px;
+    text-align: center;
+}
+.dijitDisabled .dijitAgCustomIcon {
+    background-image: url('images/customIconsAgendaDisabled.png')!important;
+    background-repeat: no-repeat;
+    width: 24px;
+    height: 24px;
+    text-align: center;
+}
+.dijitCustomizedIcon {
+    background-image: url('images/customIconsObjActEnabled.png');
+    background-repeat: no-repeat;
+    width: 18px;
+    height: 18px;
+    text-align: center;
+}
+.dijitDisabled .dijitCustomizedIcon {
+    background-image: url('images/customIconsObjActDisabled.png');
+    background-repeat: no-repeat;
+    width: 18px;
+    height: 18px;
+    text-align: center;
+}
 .dijitEditorIcon {
 	background-image: url('images/editorIconsEnabled.png'); 
 	background-repeat: no-repeat;
